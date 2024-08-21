@@ -86,7 +86,7 @@ float map(float value, float inMin, float inMax, float outMin, float outMax) {
 }
 
 vec2 GetGradient(vec2 intPos, float t) {
-	float rand = texture2D(u_texture, intPos / 64.0).r;
+	float rand = texture2D(u_texture, intPos * 10.0).r;
 	float angle = 6.283185 * rand + 4.0 * t * rand;
 	return vec2(cos(angle), sin(angle));
 }
