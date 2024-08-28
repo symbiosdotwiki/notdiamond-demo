@@ -335,7 +335,7 @@ void main() {
 		color += .3 * border;// * 0.5 * (1. + sin(u_time * 8. + 20. * borderPhase));
 
 		// float pNoise = circleTex3(uv * 100.);
-		vec3 pNoise = circleTex3(uv * 100.);
+		vec3 pNoise = circleTex3(uv * 150.);
 		pNoise = pow(clamp(pNoise * 2., 0., 1.), vec3(.8));
 		// for(int i = 0; i < 3; i++) {
 		// 	pNoise += Pseudo3dNoise(vec3(uv * 205., u_time + 20. * float(i))) * .5 + .7;
@@ -365,6 +365,9 @@ void main() {
 		color = BG;
 		// color *= .9 + 1. * texture2D(u_texture, 3. * uv + vec2(5. * u_time)).r;
 	}
+
+	float edgeLerp = pow(clamp(map(abs(distFromCenter - rad), .007, 0., 0., 1.), .0, 1.), 2.) * .2;
+	color = mix(color, grey, edgeLerp);
 
 	float noiseTex = texture2D(u_texture, 3. * uv).r;
 	noiseTex = 0.5 * (1. + sin(20. * u_time + noiseTex * 8. * PI));
