@@ -331,7 +331,7 @@ void main() {
 		color = BG;
 	}
 
-	float edgeLerp = pow(clamp(map(abs(distFromCenter - rad), .007, 0., 0., 1.), .0, 1.), 2.) * .3;
+	float edgeLerp = pow(clamp(map(abs(distFromCenter - rad + .003), .007, 0., 0., 1.), .0, 1.), 2.) * .25;
 	color = mix(color, grey, edgeLerp);
 
 	float noiseTex = texture2D(u_texture, 3. * uv).r;
