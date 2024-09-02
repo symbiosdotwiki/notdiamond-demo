@@ -270,7 +270,7 @@ void main() {
 	vec3 white = vec3(.95);
 	vec3 yellow = vec3(.95, .95, .4);
 	vec3 yellow2 = vec3(.95, .95, .5);
-	vec3 grey = .04 * vec3(.8, 0., 1.) + .45;
+	vec3 grey = .04 * vec3(.8, 0., 1.) + .4;
 	vec3 lightPos = normalize(vec3(0.0, 0.0, 1.0));
 
 	vec2 uv = gl_FragCoord.xy / u_resolution.x;
@@ -348,14 +348,16 @@ void main() {
 		color += .3 * border;
 		color = clamp(color, 0., 1.);
 
-		vec3 pNoise = circleTex3(diff * 115.);
-		pNoise = pow(clamp(pNoise * 2., 0., 1.), vec3(10.));
+		vec3 pNoise = circleTex3(diff * 125.);
+		pNoise = pow(clamp(pNoise * 1.7, 0., 1.), vec3(10.));
 
 		pNoise = map(pNoise, 0., 1., .2, 1.);
-		float pNoiseF = dot(pNoise, vec3(1.));
-		color *= vec3(pNoiseF + .1) * 1.;
+		// float pNoiseF = dot(pNoise, vec3(1.));
+		float pNoiseF = circleTex(diff * 135.);
+		pNoiseF = pow(clamp(pNoiseF * 1.3, 0., 1.), 2.);
+		color *= vec3(pNoiseF + .7) * 1.;
 		color = clamp(color, 0., 1.);
-		// color += .2 * pNoiseF * pow(light, 4.);
+		color += .2 * pNoiseF * pow(light, 2.);
 
 		float lightGlow = light * pulse;
 		// light += pulse;
