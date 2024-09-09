@@ -107,9 +107,11 @@ const float PI = 3.1415926535897932384626433832795;
 const float rad = .45;
 
 float hash(float n) {
-	return fract(sin(n) * 43758.5453123);
+	return texture2D(u_texture, vec2(n, n) * 10.).r;
+	// return fract(sin(n) * 43758.5453123);
 }
 float hash21(vec2 p) {
+	// return texture2D(u_texture, p).r;
 	p = fract(p * vec2(127.1, 311.7));
 	p = p + dot(p, p.yx + 74.683);
 	return fract(p.x * p.y);
@@ -259,7 +261,7 @@ vec3 sphericalMapping(vec3 normal, float phi, float theta, float bRad, float phi
 	float noiseTex = 1.;
 
 	// float outerRad = .08;
-	float outerRad = mix(0.08, .12, pow(nz, 2.));
+	float outerRad = mix(0.08, .12, pow(nz, 2.)) * .45;
 	float lerp = map(d, bRad, outerRad + bRad, 0., 1.);
 	lerp = pow(lerp, .5);
 	float val = mix(noiseTex, 0., lerp);
@@ -298,11 +300,14 @@ void main() {
 
 	float bglerp = mix(6., 3.1 - .5 * pulse, uv.x);
 	float lerpBG = max(0., min(1., bglerp * abs(uv.y - center.y)));
-	vec3 BG = mix(yellow, white, lerpBG);
+	vec3 BG = mix(yellow + vec3(0., 0., .2), white, lerpBG);
 
 	float lerp = clamp(map(distFromCenter, rad, .03 + rad, 0., 1.), .6, 1.);
-	BG = mix(yellow + vec3(0., 0., .4), BG, pow(lerp, .25));
-	BG -= .4 * (pulse - .2) * vec3(0., 0., 1.) * (1. - pow(lerpBG, .5));
+	BG = min(BG, mix(yellow + vec3(0., 0., .4), BG, pow(lerp, 2.)));
+
+	float pulseGlow = clamp(1. - mix(30., 8., uv.x) * abs(uv.y - center.y), 0., 1.);
+	BG += mix(vec3(0.), -vec3(0., 0., 1.), pulseGlow) * pulse * .3;
+	// BG -= .4 * (pulse - .2) * vec3(0., 0., 1.) * (1. - pow(lerpBG, .1));
 	// BG = mix(yellow, BG, pow(lerp, 2.) - .5 * pulse);
 
 	if(distFromCenter < rad) {
@@ -315,8 +320,8 @@ void main() {
 			float fadeTheta = .5 * u_time + 3. * PI * fJ / 5.;
 
 			fJ += floor(fadeTheta / (2. * PI) - .75) * 999.;
-			float fPhiGroup = randomRange(fJ * 1.2 + 34., .06, .08) * .73 * .8;
-			float fThetaGroup = randomRange(fJ * 3.21 + 98., .07, .1) * .2 * .8;
+			float fPhiGroup = randomRange(fJ * 1.2 + 34., .06, .08) * .73 * .5;
+			float fThetaGroup = randomRange(fJ * 3.21 + 98., .07, .1) * .2 * .5;
 			float fadeSeed = randomRange(fJ * 9.4 + 154., .5, .8);
 			float fadeSeed2 = randomRange(fJ * 3. + 184., 0., 4. * PI);
 
@@ -340,6 +345,7 @@ void main() {
 				vec3 sphereCol = sphericalMapping(normal, fPhi, fTheta, bRad, phiSeed, thetaSeed, fI);
 				sphereCol = max(sphereCol, .7 * sphericalMapping(normal, -fPhi, -fTheta, bRad, -phiSeed, -thetaSeed, fI));
 				sphereCol *= mix(0.6, 1., pow(lightSin, 1.));
+				sphereCol *= mix(0.5, 1., pow(light + .1, 8.));
 
 				float sinCol = map(sin(fadeTheta), -1., 1., 0., 1.2);
 				sinCol = pow(clamp(sinCol, 0., 1.), 3.);
@@ -349,7 +355,7 @@ void main() {
 			}
 		}
 		float border = map(distFromCenter, rad - .09, rad, 0., 1.);
-		border = 1.6 * pow(border, 2.);
+		border = 2.5 * pow(border, 2.);
 		float borderPhase = texture2D(u_texture, 2. * uv).r;
 		color += .3 * border;
 		color = clamp(color, 0., 1.);
@@ -376,11 +382,12 @@ void main() {
 		// vec3 glow2 = mix(vec3(0.), yellow, clamp(pow(lightGlow, 2.), 0., 1.));
 		float glowLerp = clamp(color.r * map(lightSin, 0., 1., .7, 1.), 0., 1.);
 		vec3 greyLerp = mix(grey, grey * .7, pow(light, 16.));
-		color = mix(greyLerp, glow, glowLerp) + lightSin * .05;// + glow * .2;
+		color = mix(greyLerp, glow, glowLerp);// + lightSin * .05;// + glow * .2;
 		color = clamp(color, 0., 1.);
 
-		color += .2 * pow(max(dot(normalize(normal), normalize(vec3(1., 1., 1.))), 0.0), 4.);
-		color += .15 * pow(max(dot(normalize(normal), normalize(vec3(-1., 0., 1.))), 0.0), 4.);
+		// phong shading
+		color += .1 * pow(max(dot(normalize(normal), normalize(vec3(1., 1., 1.))), 0.0), 4.);
+		color += .07 * pow(max(dot(normalize(normal), normalize(vec3(-1., 0., 1.))), 0.0), 4.);
 		color = clamp(color, 0., 1.);
 
 		float sphereLerp = pow(map(distFromCenter, rad - .08, rad, 0., 1.), 2.);
